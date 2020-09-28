@@ -28,6 +28,14 @@ app.get("/hello", (req, res) => {
 app.get("/urls", (req,res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
+});
+
+//Add new route to render information about single url
+app.get("/urls/:shortURL", (req,res) => {
+  const shortURLParameter = req.params.shortURL;
+  const templateVars = { shortURL: shortURLParameter, longURL: urlDatabase[shortURLParameter]};
+
+ res.render("urls_show", templateVars);
 })
 
 
