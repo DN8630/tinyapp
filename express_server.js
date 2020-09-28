@@ -11,6 +11,11 @@ app.get("/", (req,res) => {
   res.send('Hello!');
 });
 app.listen(PORT, () => {
-  console.log(`Example app is listening on the port ${PORT}`);
-})
+  console.log(`Example app is listening on the port ${PORT}!`);
+});
+
+//Add router
+app.get("/urls.json", (req,res) => {
+  res.json(urlDatabase);
+});
 
