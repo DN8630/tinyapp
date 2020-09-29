@@ -69,6 +69,12 @@ app.get("/u/:shortURL", (req,res) => {
   res.send(`Requested Url : ${longURL} not found`);
 });
 
+// Adding POST route to handle delete URL
+app.post("/urls/:shortURL/delete", (req,res) => {
+  const shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  res.redirect("/urls");
+})
 // Server Listens
 app.listen(PORT, () => {
   console.log(`Example app is listening on the port ${PORT}!`);
