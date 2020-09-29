@@ -8,6 +8,7 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+// Method to generate 6 digit alphanumeric random shortURL
 const generateRandomString = function() {
   const randomURLStr = Math.random().toString(36).substring(2,8);
   return randomURLStr;
@@ -19,28 +20,31 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.get("/", (req,res) => {
   res.send('Hello!');
 });
-app.listen(PORT, () => {
-  console.log(`Example app is listening on the port ${PORT}!`);
-});
+
 
 //Add router
 app.get("/urls.json", (req,res) => {
   res.json(urlDatabase);
 });
+// Send HTML
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
-//Add route for /urls
+//Add route for /urls to display page with all URL's
 app.get("/urls", (req,res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
+
 app.get("/urls/new", (req,res) => {
   res.render("urls_new");
 });
+
+// Post method for form submission and redirect to shortURL
 app.post("/urls", (req,res) => {
   const longURL = req.body.longURL;
+
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = longURL;
   res.redirect(`/urls/${shortURL}`);
@@ -57,10 +61,15 @@ app.get("/u/:shortURL", (req,res) => {
 
   const longURL = urlDatabase[req.params.shortURL];
   if (longURL) {
+    res.statusCode = 300;
     res.redirect(longURL);
+    return ;
   }
   res.status = 404;
   res.send(`Requested Url : ${longURL} not found`);
 });
 
-
+// Server Listens 
+app.listen(PORT, () => {
+  console.log(`Example app is listening on the port ${PORT}!`);
+});
