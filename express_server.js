@@ -34,7 +34,10 @@ app.get("/urls", (req,res) => {
 app.get("/urls/new", (req,res) => {
   res.render("urls_new");
 });
-
+app.post("/urls", (req,res) => {
+  console.log(req.body);
+  res.send("OK");
+});
 //Add new route to render information about single url
 app.get("/urls/:shortURL", (req,res) => {
   const shortURLParameter = req.params.shortURL;
