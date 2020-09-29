@@ -44,7 +44,6 @@ app.get("/urls/new", (req,res) => {
 // Post method for form submission and redirect to shortURL
 app.post("/urls", (req,res) => {
   const longURL = req.body.longURL;
-
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = longURL;
   res.redirect(`/urls/${shortURL}`);
@@ -56,6 +55,13 @@ app.get("/urls/:shortURL", (req,res) => {
   const templateVars = { shortURL: shortURLParameter, longURL: urlDatabase[shortURLParameter]};
   res.render("urls_show", templateVars);
   
+});
+//Add route to update URL
+app.post("/urls/:id", (req,res) => {
+  const shortURL = req.params.id;
+  const newLongURL = req.body.newlongURL;
+  urlDatabase[shortURL] = newLongURL;
+  res.redirect("/urls");
 });
 app.get("/u/:shortURL", (req,res) => {
 
