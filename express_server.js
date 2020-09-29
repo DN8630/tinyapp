@@ -8,6 +8,11 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+function generateRandomString() {
+const randomURLStr = Math.random().toString(36).substring(2,8);
+return randomURLStr;
+};
+
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
