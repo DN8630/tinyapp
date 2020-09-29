@@ -63,13 +63,13 @@ app.get("/u/:shortURL", (req,res) => {
   if (longURL) {
     res.statusCode = 300;
     res.redirect(longURL);
-    return ;
+    return;
   }
   res.status = 404;
   res.send(`Requested Url : ${longURL} not found`);
 });
 
-// Server Listens 
+// Server Listens
 app.listen(PORT, () => {
   console.log(`Example app is listening on the port ${PORT}!`);
 });
