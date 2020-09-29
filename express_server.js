@@ -29,6 +29,9 @@ app.get("/urls", (req,res) => {
   const templateVars = { urls: urlDatabase };
   res.render("urls_index", templateVars);
 });
+app.get("/urls/new", (req,res) => {
+  res.render("urls_new");
+});
 
 //Add new route to render information about single url
 app.get("/urls/:shortURL", (req,res) => {
@@ -36,7 +39,7 @@ app.get("/urls/:shortURL", (req,res) => {
   const templateVars = { shortURL: shortURLParameter, longURL: urlDatabase[shortURLParameter]};
 
  res.render("urls_show", templateVars);
-})
+});
 
 
 
