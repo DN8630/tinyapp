@@ -8,9 +8,9 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-function generateRandomString() {
-const randomURLStr = Math.random().toString(36).substring(2,8);
-return randomURLStr;
+const generateRandomString = function() {
+  const randomURLStr = Math.random().toString(36).substring(2,8);
+  return randomURLStr;
 };
 
 const bodyParser = require("body-parser");
@@ -40,16 +40,27 @@ app.get("/urls/new", (req,res) => {
   res.render("urls_new");
 });
 app.post("/urls", (req,res) => {
-  console.log(req.body);
-  res.send("OK");
+  const longURL = req.body.longURL;
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = longURL;
+  res.redirect(`/urls/${shortURL}`);
+  // res.send("OK");
 });
 //Add new route to render information about single url
 app.get("/urls/:shortURL", (req,res) => {
   const shortURLParameter = req.params.shortURL;
   const templateVars = { shortURL: shortURLParameter, longURL: urlDatabase[shortURLParameter]};
-
- res.render("urls_show", templateVars);
+  res.render("urls_show", templateVars);
+  
 });
+app.get("/u/:shortURL", (req,res) => {
 
+  const longURL = urlDatabase[req.params.shortURL];
+  if (longURL) {
+    res.redirect(longURL);
+  }
+  res.status = 404;
+  res.send(`Requested Url : ${longURL} not found`);
+});
 
 
