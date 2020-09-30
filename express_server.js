@@ -3,6 +3,7 @@ const app = express();
 const PORT = 8080; //Default port
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
+const { generateRandomString, createNewUser } = require('./helper');
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -13,11 +14,16 @@ const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-// Method to generate 6 digit alphanumeric random shortURL
-const generateRandomString = function() {
-  const randomURLStr = Math.random().toString(36).substring(2,8);
-  return randomURLStr;
+// User object for registered objects
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  }
+
 };
+
 
 app.get("/", (req,res) => {
   res.send('Hello!');
@@ -35,13 +41,20 @@ app.get("/hello", (req, res) => {
 
 //Add route for /urls to display page with all URL's
 app.get("/urls", (req,res) => {
-  const templateVars = { urls: urlDatabase,
-  username: req.cookies["username"]};
+  // Update to use cookie user_id and send user object to template
+  // const templateVars = { urls: urlDatabase,
+  // username: req.cookies["username"]};
+  const user = users[req.cookies['user_id']];
+  const templateVars = { user, urls: urlDatabase};
   res.render("urls_index", templateVars);
 });
 
+// Add route to create new URL
 app.get("/urls/new", (req,res) => {
-  const templateVars = { username: req.cookies["username"]};
+  // Update to use cookie user_id and send user object to template
+  // const templateVars = { username: req.cookies["username"]};
+  const user = users[req.cookies['user_id']];
+  const templateVars = { user };
   res.render("urls_new",templateVars);
 });
 
@@ -56,10 +69,18 @@ app.post("/urls", (req,res) => {
 //Add new route to render information about single url
 app.get("/urls/:shortURL", (req,res) => {
   const shortURLParameter = req.params.shortURL;
-  const templateVars = { shortURL: shortURLParameter,
-     longURL: urlDatabase[shortURLParameter], 
-     username: req.cookies["username"],
-     };
+  // Update to use cookie user_id and send user object to template
+  // const templateVars = { shortURL: shortURLParameter,
+  //    longURL: urlDatabase[shortURLParameter],
+  //    username: req.cookies["username"],
+  //    };
+  const user = users[req.cookies['user_id']];
+  const templateVars = {
+    user,
+    shortURL: shortURLParameter,
+    longURL: urlDatabase[shortURLParameter]
+  };
+  console.log(templateVars);
   res.render("urls_show", templateVars);
   
 });
@@ -105,7 +126,16 @@ app.post("/logout", (req,res) => {
 // Adding get route to register new account
 app.get("/register", (req,res) => {
   res.render("tinyapp_register");
-})
+});
+// Adding post route to register new user
+app.post("/register", (req,res) => {
+
+  const user = createNewUser(req.body.email,req.body.password);
+  users[user.id] = user;
+  res.cookie('user_id',user.id);
+  res.redirect("/urls");
+});
+
 // Server Listens
 app.listen(PORT, () => {
   console.log(`Example app is listening on the port ${PORT}!`);
