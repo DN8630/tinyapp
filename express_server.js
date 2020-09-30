@@ -3,7 +3,7 @@ const app = express();
 const PORT = 8080; //Default port
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
-const { generateRandomString, createNewUser } = require('./helper');
+const { validateUser } = require('./helper');
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -23,7 +23,11 @@ const users = {
   }
 
 };
-
+// Method to generate 6 digit alphanumeric random shortURL
+const generateRandomString = function() {
+  const randomURLStr = Math.random().toString(36).substring(2,8);
+  return randomURLStr;
+};
 
 app.get("/", (req,res) => {
   res.send('Hello!');
@@ -119,7 +123,9 @@ app.post("/login", (req,res) => {
 
 //Adding Post route for logout
 app.post("/logout", (req,res) => {
-  res.clearCookie('username');
+  // res.clearCookie('username');
+  // Update to use cookie user_id
+  res.clearCookie('user_id');
   res.redirect("/urls");
 });
 
@@ -129,11 +135,24 @@ app.get("/register", (req,res) => {
 });
 // Adding post route to register new user
 app.post("/register", (req,res) => {
+  //Check registration errors
+  console.log(users);
+  const email = req.body.email;
+  const password = req.body.password;
+  if (validateUser(users,email,password)) {
+    res.sendStatus(400);
+  } else {
+    const id = generateRandomString();
+    const newUser = {
+      id,
+     email,
+     password
+    };
+    users[id] = newUser;
+    res.cookie('user_id',id);
+    res.redirect("/urls");
+  }
 
-  const user = createNewUser(req.body.email,req.body.password);
-  users[user.id] = user;
-  res.cookie('user_id',user.id);
-  res.redirect("/urls");
 });
 
 // Server Listens

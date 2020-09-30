@@ -4,10 +4,25 @@ const generateRandomString = function() {
   return randomURLStr;
 };
 
-const createNewUser = function(email, password) {
-const id = generateRandomString();
-return { id, email, password };
+const checkEmail = function(users,email) {
+  for (const id in users) {
+    if (users[id].email === email) {
+      return true;
+    }   
+  }
+  return false;
+};
 
-}
+const validateUser = function(users,email,password) {
 
-module.exports = { generateRandomString, createNewUser };
+  if (email === "" || password === "") {
+    return true;
+  } else if (checkEmail(users,email,password)) {
+    return true;
+  }
+  return false;
+};
+
+
+
+module.exports = { validateUser, checkEmail };
