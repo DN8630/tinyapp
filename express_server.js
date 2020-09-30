@@ -100,6 +100,11 @@ app.post("/login", (req,res) => {
 app.post("/logout", (req,res) => {
   res.clearCookie('username');
   res.redirect("/urls");
+});
+
+// Adding get route to register new account
+app.get("/register", (req,res) => {
+  res.render("tinyapp_register");
 })
 // Server Listens
 app.listen(PORT, () => {
