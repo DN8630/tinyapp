@@ -49,7 +49,9 @@ app.get("/urls", (req,res) => {
   // const templateVars = { urls: urlDatabase,
   // username: req.cookies["username"]};
   const user = users[req.cookies['user_id']];
+  console.log(`User: ${user}`);
   const templateVars = { user, urls: urlDatabase};
+  console.log(`Template vars in get urls: ${templateVars}`);
   res.render("urls_index", templateVars);
 });
 
@@ -113,11 +115,15 @@ app.post("/urls/:shortURL/delete", (req,res) => {
   delete urlDatabase[shortURL];
   res.redirect("/urls");
 });
-
+// Adding GET route to login page
+app.get("/login", (req,res) => {
+  res.render("login");
+})
 // Adding Post route for login
 app.post("/login", (req,res) => {
-  const username = req.body.username;
-  res.cookie('username',username);
+  // const username = req.body.username;
+  // res.cookie('username',username);
+
   res.redirect("/urls");
 });
 
