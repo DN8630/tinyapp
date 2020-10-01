@@ -3,7 +3,7 @@ const app = express();
 const PORT = 8080; //Default port
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
-const { validateUser } = require('./helper');
+const { checkEmail, validateUser } = require('./helper');
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -49,10 +49,16 @@ app.get("/urls", (req,res) => {
   // const templateVars = { urls: urlDatabase,
   // username: req.cookies["username"]};
   const user = users[req.cookies['user_id']];
-  console.log(`User: ${user}`);
   const templateVars = { user, urls: urlDatabase};
-  console.log(`Template vars in get urls: ${templateVars}`);
   res.render("urls_index", templateVars);
+});
+// Post method for form submission and redirect to shortURL
+app.post("/urls", (req,res) => {
+  const longURL = req.body.longURL;
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = longURL;
+  res.redirect(`/urls/${shortURL}`);
+  // res.send("OK");
 });
 
 // Add route to create new URL
@@ -64,14 +70,7 @@ app.get("/urls/new", (req,res) => {
   res.render("urls_new",templateVars);
 });
 
-// Post method for form submission and redirect to shortURL
-app.post("/urls", (req,res) => {
-  const longURL = req.body.longURL;
-  const shortURL = generateRandomString();
-  urlDatabase[shortURL] = longURL;
-  res.redirect(`/urls/${shortURL}`);
-  // res.send("OK");
-});
+
 //Add new route to render information about single url
 app.get("/urls/:shortURL", (req,res) => {
   const shortURLParameter = req.params.shortURL;
@@ -86,7 +85,7 @@ app.get("/urls/:shortURL", (req,res) => {
     shortURL: shortURLParameter,
     longURL: urlDatabase[shortURLParameter]
   };
-  console.log(templateVars);
+  // console.log(templateVars);
   res.render("urls_show", templateVars);
   
 });
@@ -97,8 +96,8 @@ app.post("/urls/:id", (req,res) => {
   urlDatabase[shortURL] = newLongURL;
   res.redirect("/urls");
 });
-app.get("/u/:shortURL", (req,res) => {
 
+app.get("/u/:shortURL", (req,res) => {
   const longURL = urlDatabase[req.params.shortURL];
   if (longURL) {
     res.statusCode = 300;
@@ -115,6 +114,7 @@ app.post("/urls/:shortURL/delete", (req,res) => {
   delete urlDatabase[shortURL];
   res.redirect("/urls");
 });
+//-----Login route begins
 // Adding GET route to login page
 app.get("/login", (req,res) => {
   res.render("login");
@@ -123,9 +123,19 @@ app.get("/login", (req,res) => {
 app.post("/login", (req,res) => {
   // const username = req.body.username;
   // res.cookie('username',username);
-
-  res.redirect("/urls");
+  const email = req.body.email;
+  const password = req.body.password;
+  const currentUser = validateUser(users,email,password);
+  if (currentUser) {
+    const userId = currentUser.id;
+    res.cookie('user_id',userId);
+    res.redirect("/urls"); 
+  } else {
+    res.statusCode = 403;
+    res.send("Login Failed");
+  }
 });
+//-----Login route ends
 
 //Adding Post route for logout
 app.post("/logout", (req,res) => {
@@ -142,12 +152,9 @@ app.get("/register", (req,res) => {
 // Adding post route to register new user
 app.post("/register", (req,res) => {
   //Check registration errors
-  console.log(users);
   const email = req.body.email;
   const password = req.body.password;
-  if (validateUser(users,email,password)) {
-    res.sendStatus(400);
-  } else {
+  if (!checkEmail(users,email,password)) {
     const id = generateRandomString();
     const newUser = {
       id,
@@ -157,8 +164,11 @@ app.post("/register", (req,res) => {
     users[id] = newUser;
     res.cookie('user_id',id);
     res.redirect("/urls");
-  }
+  } else {
+    res.statusCode = 400;
+    res.send("Registration Failed");
 
+  }
 });
 
 // Server Listens
