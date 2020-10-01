@@ -5,8 +5,14 @@ const { checkEmail, validateUser, urlsForUser, generateRandomString, createNewUs
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
+// const cookieParser = require('cookie-parser');
+// app.use(cookieParser());
+
+const cookieSession = require('cookie-session');
+app.use(cookieSession({
+  name: 'session',
+  keys: ['WinterIsComing', 'DCH']
+}));
 app.set("view engine", "ejs");
 
 /* const urlDatabase = {
@@ -27,7 +33,6 @@ const users = {
 
 };
 
-
 app.get("/", (req,res) => {
   res.send('Hello!');
 });
@@ -44,16 +49,13 @@ app.get("/hello", (req, res) => {
 
 //Add route for /urls to display page with all URL's
 app.get("/urls", (req,res) => {
-  // Update to use cookie user_id and send user object to template
-  // const templateVars = { urls: urlDatabase,
-  // username: req.cookies["username"]};
-  const user = users[req.cookies['user_id']];
+  const user = users[req.session['user_id']];
   if (user) {
     const urlForUser = urlsForUser(urlDatabase,user.id);
     const templateVars = { user, urls: urlForUser};
     res.render("urls_index", templateVars);
   } else {
-    res.render("urls_index", {urls : null , user})
+    res.render("urls_index", {urls : null , user});
   }
 });
 
@@ -62,7 +64,7 @@ app.get("/urls", (req,res) => {
 app.post("/urls", (req,res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
-  const userID = req.cookies['user_id'];
+  const userID = req.session['user_id'];
   urlDatabase[shortURL] = { longURL,userID};
   res.redirect(`/urls/${shortURL}`);
   // res.send("OK");
@@ -72,7 +74,7 @@ app.post("/urls", (req,res) => {
 app.get("/urls/new", (req,res) => {
   // Update to use cookie user_id and send user object to template
   // const templateVars = { username: req.cookies["username"]};
-  const user = users[req.cookies['user_id']];
+  const user = users[req.session['user_id']];
   // Check if current user is logged in a
   if (user) {
     const templateVars = { user };
@@ -93,7 +95,7 @@ app.get("/urls/:shortURL", (req,res) => {
   //    longURL: urlDatabase[shortURLParameter],
   //    username: req.cookies["username"],
   //    };
-  const user = users[req.cookies['user_id']];
+  const user = users[req.session['user_id']];
   const shortURLParameter = req.params.shortURL;
   if (user) {
     const urlForUser = urlsForUser(urlDatabase,user.id);
@@ -107,7 +109,7 @@ app.get("/urls/:shortURL", (req,res) => {
       res.render("urls_show", templateVars);
       return;
     } else {
-      res.send("Url does not belogn to the user");
+      res.send("Url does not belong to the user");
     }
   } else {
     res.render("error", { errorstatus: "404", message: "Please login to see your URL's"});
@@ -117,13 +119,13 @@ app.get("/urls/:shortURL", (req,res) => {
 app.post("/urls/:id", (req,res) => {
   const shortURL = req.params.id;
   const newLongURL = req.body.newlongURL;
-  const user = users[req.cookies['user_id']];
+  const user = users[req.session['user_id']];
   if (user) {
     const urlForUser = urlsForUser(urlDatabase,user.id);
     if (urlForUser[shortURL]) {
       urlDatabase[shortURL] = {
         longURL:newLongURL,
-        userID: req.cookies['user_id']
+        userID: req.session['user_id']
       };
       res.redirect("/urls");
       return;
@@ -146,20 +148,17 @@ app.get("/u/:shortURL", (req,res) => {
       return;
     }
   }
-  
-
   res.status = 404;
   res.send(`Requested Url not found`);
 });
 
 // Adding POST route to handle delete URL
 app.post("/urls/:shortURL/delete", (req,res) => {
-  const user = users[req.cookies['user_id']];
+  const user = users[req.session['user_id']];
   if (user) {
     const urlForUser = urlsForUser(urlDatabase,user.id);
     const shortURL = req.params.shortURL;
     if (urlForUser[shortURL]) {
-
       delete urlDatabase[shortURL];
       res.redirect("/urls");
       return;
@@ -174,7 +173,7 @@ app.post("/urls/:shortURL/delete", (req,res) => {
 //-----Login route begins
 // Adding GET route to login page
 app.get("/login", (req,res) => {
-  const templateVars = { user: users[req.cookies['user_id']]};
+  const templateVars = { user: users[req.session['user_id']]};
   res.render("login", templateVars);
 });
 
@@ -187,7 +186,7 @@ app.post("/login", (req,res) => {
   const currentUser = validateUser(users,email,password);
   if (currentUser) {
     const userId = currentUser.id;
-    res.cookie('user_id',userId);
+    req.session['user_id'] = userId;
     res.redirect("/urls");
   } else {
     res.statusCode = 403;
@@ -199,13 +198,13 @@ app.post("/login", (req,res) => {
 //Adding Post route for logout
 app.post("/logout", (req,res) => {
   //Clear cookie on logout
-  res.clearCookie('user_id');
+  req.session['user_id'] = null;
   res.redirect("/urls");
 });
 
 // Adding get route to register new account
 app.get("/register", (req,res) => {
-  const templateVars = { user: users[req.cookies['user_id']]};
+  const templateVars = { user: users[req.session['user_id']]};
   res.render("tinyapp_register",templateVars);
 });
 
@@ -213,12 +212,12 @@ app.get("/register", (req,res) => {
 app.post("/register", (req,res) => {
   //Check registration errors
   const email = req.body.email;
-  const pwdText= req.body.password;
+  const pwdText = req.body.password;
   if (!checkEmail(users,email,pwdText)) {
     const newUser = createNewUser(email,pwdText);
     const id = newUser.id;
     users[id] = newUser;
-    res.cookie('user_id',id);
+    req.session['user_id'] = id;
     res.redirect("/urls");
   } else {
     res.statusCode = 400;

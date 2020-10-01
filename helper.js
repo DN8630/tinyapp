@@ -30,7 +30,7 @@ const validateUser = function(users,email,password) {
       if (bcrypt.compareSync(password, currentUser.password)) {
         return currentUser;
       }
-    }      
+    }
   }
   return null;
 };
@@ -50,6 +50,6 @@ const createNewUser = function(email, originalPwd) {
   const id = generateRandomString();
   const password = bcrypt.hashSync(originalPwd,salt);
   return { id, email, password};
-}
+};
 
 module.exports = { validateUser, checkEmail, urlsForUser, generateRandomString, createNewUser };
