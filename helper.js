@@ -1,3 +1,7 @@
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+const salt = bcrypt.genSaltSync(saltRounds);
+
 // Method to generate 6 digit alphanumeric random shortURL
 const generateRandomString = function() {
   const randomURLStr = Math.random().toString(36).substring(2,8);
@@ -22,14 +26,15 @@ const validateUser = function(users,email,password) {
   }
   for (const id in users) {
     const currentUser = users[id];
-    if (currentUser.email === email && currentUser.password === password) {
-      return currentUser;
-    }
+    if (currentUser.email === email) {
+      if (bcrypt.compareSync(password, currentUser.password)) {
+        return currentUser;
+      }
+    }      
   }
   return null;
-
 };
-
+ 
 const urlsForUser = function(urlDatabase,user_id) {
   let userUrl = {};
   for (const shortURL in urlDatabase) {
@@ -41,9 +46,9 @@ const urlsForUser = function(urlDatabase,user_id) {
 
 };
 
-const createNewUser = function(email, password) {
+const createNewUser = function(email, originalPwd) {
   const id = generateRandomString();
-
+  const password = bcrypt.hashSync(originalPwd,salt);
   return { id, email, password};
 }
 

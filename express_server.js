@@ -1,13 +1,12 @@
 const express = require('express');
 const app = express();
 const PORT = 8080; //Default port
-const cookieParser = require('cookie-parser');
-app.use(cookieParser());
 const { checkEmail, validateUser, urlsForUser, generateRandomString, createNewUser } = require('./helper');
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 app.set("view engine", "ejs");
 
 /* const urlDatabase = {
@@ -54,11 +53,11 @@ app.get("/urls", (req,res) => {
     const templateVars = { user, urls: urlForUser};
     res.render("urls_index", templateVars);
   } else {
-    res.render("error", { errorstatus: "404", message: "Please login to see your URL's"});
-    return;
+    res.render("urls_index", {urls : null , user})
   }
-
 });
+
+
 // Post method for form submission and redirect to shortURL
 app.post("/urls", (req,res) => {
   const longURL = req.body.longURL;
@@ -170,14 +169,15 @@ app.post("/urls/:shortURL/delete", (req,res) => {
   } else {
     res.send("Please login to delete URL");
   }
-
-
 });
+
 //-----Login route begins
 // Adding GET route to login page
 app.get("/login", (req,res) => {
-  res.render("login");
+  const templateVars = { user: users[req.cookies['user_id']]};
+  res.render("login", templateVars);
 });
+
 // Adding Post route for login
 app.post("/login", (req,res) => {
   // const username = req.body.username;
@@ -198,23 +198,24 @@ app.post("/login", (req,res) => {
 
 //Adding Post route for logout
 app.post("/logout", (req,res) => {
-  // res.clearCookie('username');
-  // Update to use cookie user_id
+  //Clear cookie on logout
   res.clearCookie('user_id');
   res.redirect("/urls");
 });
 
 // Adding get route to register new account
 app.get("/register", (req,res) => {
-  res.render("tinyapp_register");
+  const templateVars = { user: users[req.cookies['user_id']]};
+  res.render("tinyapp_register",templateVars);
 });
+
 // Adding post route to register new user
 app.post("/register", (req,res) => {
   //Check registration errors
   const email = req.body.email;
-  const password = req.body.password;
-  if (!checkEmail(users,email,password)) {
-    const newUser = createNewUser(email,password);
+  const pwdText= req.body.password;
+  if (!checkEmail(users,email,pwdText)) {
+    const newUser = createNewUser(email,pwdText);
     const id = newUser.id;
     users[id] = newUser;
     res.cookie('user_id',id);
