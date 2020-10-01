@@ -7,23 +7,26 @@
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav" style="text-align: justify;">
         <a class="nav-item nav-link" href="/urls">My URLs</a>
-        <a class="nav-item nav-link" href="/urls/new">Create New URL</a>        
-        <% if(username) { %>
-          <form class="form-inline" method="POST" action="/logout" style="align-items: baseline;">
-            <p>Logged in as: <%= username %>!</p>
+        <a class="nav-item nav-link" href="/urls/new">Create New URL</a>    
+
+          <% if(user) { %>
+          <form class="form-inline" method="POST" action="/logout" style="align-items: baseline; position:absolute; right: 0;">
+            <p>Logged in as: <%= user.email %>!</p>
             <div class="form-group mb-2" style="align-items: baseline;">
               <button type="submit" >Logout</button>
             </div>
           </form>
 
         <% } else { %>
-        <form class="form-inline" method="POST" action="/login" style="align-items: baseline;">
+          <a class="nav-item nav-link" href="/register" style="color: white;" >Register</a>
+          <a class="nav-item nav-link" href="/login" style="color: white;" >Login</a>
+        <!-- <form class="form-inline" method="POST" action="/login" style="align-items: baseline; position:absolute; right: 0">
           
           <div class="form-group mb-2" style="align-items: baseline;">
-            <input type="text" name="username" placeholder="username" style="width: 200px; text-align: justify;"/>
+            <input type="text" name="username" placeholder="username" style="width: 200px; text-align: justify; "/>
             <button type="submit" >Login</button>
           </div>
-        </form>
+        </form> -->
         <% } %>
       </div>
     </div>
