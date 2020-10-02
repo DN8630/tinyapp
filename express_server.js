@@ -30,7 +30,12 @@ const users = {
 };
 
 app.get("/", (req,res) => {
-  res.send('Hello!');
+  const user = users[req.session['user_id']];
+  if (user) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
 });
 
 
@@ -84,6 +89,10 @@ app.get("/urls/new", (req,res) => {
 app.get("/urls/:shortURL", (req,res) => {
   const user = users[req.session['user_id']];
   const shortURLParameter = req.params.shortURL;
+  if (!urlDatabase[shortURLParameter]) {
+    res.statusCode = 404;
+    res.send("URL does not exist");
+  }
   if (user) {
     const urlForUser = urlsForUser(urlDatabase,user.id);
     if (urlForUser[shortURLParameter]) {
@@ -95,7 +104,7 @@ app.get("/urls/:shortURL", (req,res) => {
       res.render("urls_show", templateVars);
       return;
     } else {
-      res.send("Url does not belong to the user");
+      res.send("Access to the URL denied");
     }
   } else {
     res.render("error", { errorstatus: "404", message: "Please login to see your URL's"});
@@ -157,8 +166,13 @@ app.post("/urls/:shortURL/delete", (req,res) => {
 
 // Display login page
 app.get("/login", (req,res) => {
-  const templateVars = { user: users[req.session['user_id']]};
-  res.render("login", templateVars);
+  const userID = req.session['user_id'];
+  if (userID) {
+    res.redirect("/urls");
+  } else {
+    const templateVars = { user: users[req.session['user_id']]};
+    res.render("login", templateVars);
+  }
 });
 
 // Adding Post route for login
@@ -186,8 +200,13 @@ app.post("/logout", (req,res) => {
 
 // Adding get route to register new account
 app.get("/register", (req,res) => {
-  const templateVars = { user: users[req.session['user_id']]};
-  res.render("tinyapp_register",templateVars);
+  const userID = req.session['user_id'];
+  if (userID) {
+    res.redirect("/urls");
+  } else {
+    const templateVars = { user: users[req.session['user_id']]};
+    res.render("tinyapp_register",templateVars);
+  }
 });
 
 // Adding post route to register new user

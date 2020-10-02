@@ -10,13 +10,14 @@ const generateRandomString = function() {
 
 const getUserByEmail = function(email,users) {
   for (const id in users) {
-    const currentUser = users[id]; 
+    const currentUser = users[id];
     if (currentUser.email === email) {
       return currentUser;
     }
   }
   return undefined;
-}
+};
+
 const validateUser = function(users,email,password) {
   if (email === "" || password === "") {
     return null;
