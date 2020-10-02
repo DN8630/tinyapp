@@ -8,18 +8,15 @@ const generateRandomString = function() {
   return randomURLStr;
 };
 
-const checkEmail = function(users,email,password) {
-  if (email === "" || password === "") {
-    return true;
-  }
+const getUserByEmail = function(users,email) {
   for (const id in users) {
-    if (users[id].email === email) {
-      return true;
+    const currentUser = users[id];
+    if (currentUser.email === email) {
+      return currentUser;
     }
   }
-  return false;
-};
-
+  return null;
+}
 const validateUser = function(users,email,password) {
   if (email === "" || password === "") {
     return null;
@@ -52,4 +49,4 @@ const createNewUser = function(email, originalPwd) {
   return { id, email, password};
 };
 
-module.exports = { validateUser, checkEmail, urlsForUser, generateRandomString, createNewUser };
+module.exports = { validateUser, getUserByEmail, urlsForUser, generateRandomString, createNewUser };

@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const PORT = 8080; //Default port
-const { checkEmail, validateUser, urlsForUser, generateRandomString, createNewUser } = require('./helper');
+const { getUserByEmail, validateUser, urlsForUser, generateRandomString, createNewUser } = require('./helper');
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
@@ -213,7 +213,9 @@ app.post("/register", (req,res) => {
   //Check registration errors
   const email = req.body.email;
   const pwdText = req.body.password;
-  if (!checkEmail(users,email,pwdText)) {
+  if (email === "" || pwdText === "") {
+    res.send("Please enter valid data");
+  } else if (getUserByEmail(users,email) === null) {
     const newUser = createNewUser(email,pwdText);
     const id = newUser.id;
     users[id] = newUser;
@@ -222,7 +224,6 @@ app.post("/register", (req,res) => {
   } else {
     res.statusCode = 400;
     res.send("Registration Failed");
-
   }
 });
 
