@@ -8,14 +8,14 @@ const generateRandomString = function() {
   return randomURLStr;
 };
 
-const getUserByEmail = function(users,email) {
+const getUserByEmail = function(email,users) {
   for (const id in users) {
-    const currentUser = users[id];
+    const currentUser = users[id]; 
     if (currentUser.email === email) {
       return currentUser;
     }
   }
-  return null;
+  return undefined;
 }
 const validateUser = function(users,email,password) {
   if (email === "" || password === "") {

@@ -5,25 +5,21 @@ const { getUserByEmail, validateUser, urlsForUser, generateRandomString, createN
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
-// const cookieParser = require('cookie-parser');
-// app.use(cookieParser());
 
 const cookieSession = require('cookie-session');
 app.use(cookieSession({
   name: 'session',
   keys: ['WinterIsComing', 'DCH']
 }));
-app.set("view engine", "ejs");
 
-/* const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
-}; */
+app.set("view engine", "ejs");
+// Databse of URLs
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.tsn.ca", userID: "aJ48lW" },
   i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
-// User object for registered objects
+
+// User object for registered users
 const users = {
   "userRandomID": {
     id: "userRandomID",
@@ -42,6 +38,7 @@ app.get("/", (req,res) => {
 app.get("/urls.json", (req,res) => {
   res.json(urlDatabase);
 });
+
 // Send HTML
 app.get("/hello", (req, res) => {
   res.send("<html><body>Hello <b>World</b></body></html>\n");
@@ -65,17 +62,14 @@ app.post("/urls", (req,res) => {
   const longURL = req.body.longURL;
   const shortURL = generateRandomString();
   const userID = req.session['user_id'];
-  urlDatabase[shortURL] = { longURL,userID};
+  urlDatabase[shortURL] = { longURL, userID};
   res.redirect(`/urls/${shortURL}`);
-  // res.send("OK");
 });
 
 // Add route to create new URL
 app.get("/urls/new", (req,res) => {
-  // Update to use cookie user_id and send user object to template
-  // const templateVars = { username: req.cookies["username"]};
   const user = users[req.session['user_id']];
-  // Check if current user is logged in a
+  //Allow only logged in users to create a new URL
   if (user) {
     const templateVars = { user };
     res.render("urls_new",templateVars);
@@ -83,18 +77,11 @@ app.get("/urls/new", (req,res) => {
     res.redirect("/login");
     return;
   }
-
 });
 
 
-//Add new route to render information about single url
+//Add new route to display specified URL
 app.get("/urls/:shortURL", (req,res) => {
-  
-  // Update to use cookie user_id and send user object to template
-  // const templateVars = { shortURL: shortURLParameter,
-  //    longURL: urlDatabase[shortURLParameter],
-  //    username: req.cookies["username"],
-  //    };
   const user = users[req.session['user_id']];
   const shortURLParameter = req.params.shortURL;
   if (user) {
@@ -105,7 +92,6 @@ app.get("/urls/:shortURL", (req,res) => {
         shortURL: shortURLParameter,
         longURL: urlDatabase[shortURLParameter].longURL
       };
-      // console.log(templateVars);
       res.render("urls_show", templateVars);
       return;
     } else {
@@ -124,7 +110,7 @@ app.post("/urls/:id", (req,res) => {
     const urlForUser = urlsForUser(urlDatabase,user.id);
     if (urlForUser[shortURL]) {
       urlDatabase[shortURL] = {
-        longURL:newLongURL,
+        longURL: newLongURL,
         userID: req.session['user_id']
       };
       res.redirect("/urls");
@@ -135,10 +121,9 @@ app.post("/urls/:id", (req,res) => {
   } else {
     res.send("Please login to edit URL");
   }
-
-
 });
 
+//Display page to edit URL
 app.get("/u/:shortURL", (req,res) => {
   if (urlDatabase[req.params.shortURL]) {
     const longURL = urlDatabase[req.params.shortURL].longURL;
@@ -170,8 +155,7 @@ app.post("/urls/:shortURL/delete", (req,res) => {
   }
 });
 
-//-----Login route begins
-// Adding GET route to login page
+// Display login page
 app.get("/login", (req,res) => {
   const templateVars = { user: users[req.session['user_id']]};
   res.render("login", templateVars);
@@ -179,8 +163,6 @@ app.get("/login", (req,res) => {
 
 // Adding Post route for login
 app.post("/login", (req,res) => {
-  // const username = req.body.username;
-  // res.cookie('username',username);
   const email = req.body.email;
   const password = req.body.password;
   const currentUser = validateUser(users,email,password);
@@ -193,7 +175,7 @@ app.post("/login", (req,res) => {
     res.send("Login Failed");
   }
 });
-//-----Login route ends
+
 
 //Adding Post route for logout
 app.post("/logout", (req,res) => {
@@ -215,7 +197,7 @@ app.post("/register", (req,res) => {
   const pwdText = req.body.password;
   if (email === "" || pwdText === "") {
     res.send("Please enter valid data");
-  } else if (getUserByEmail(users,email) === null) {
+  } else if (!getUserByEmail(email,users)) {
     const newUser = createNewUser(email,pwdText);
     const id = newUser.id;
     users[id] = newUser;
